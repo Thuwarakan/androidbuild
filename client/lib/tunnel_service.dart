@@ -17,12 +17,8 @@ class TunnelService with ChangeNotifier {
   List<String> get activeTunnels => _activeTunnels;
 
   void log(String message) {
-    final time = DateTime.now()
-        .toIso8601String()
-        .split('T')
-        .last
-        .split('.')
-        .first;
+    final time =
+        DateTime.now().toIso8601String().split('T').last.split('.').first;
     _logs = "[$time] $message\n$_logs";
     if (_logs.length > 10000) _logs = _logs.substring(0, 10000); // Limit logs
     notifyListeners();
@@ -123,7 +119,8 @@ class TunnelService with ChangeNotifier {
       );
 
       // 3. Send Stream ID Header to Server
-      tunnelSocket.write("$streamId\n");
+      tunnelSocket.add(utf8.encode("$streamId\n"));
+      await tunnelSocket.flush();
 
       // 4. Pipe Data
       // Target -> Tunnel
