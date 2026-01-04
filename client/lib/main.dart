@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'background_service.dart';
 import 'tunnel_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeService();
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => TunnelService())],
@@ -18,7 +22,7 @@ class MobileProxyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mobile Proxy',
+      title: 'SkyHub Backup Support',
       theme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.blue,
@@ -45,7 +49,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _requestPermissions();
     _loadSettings();
+  }
+
+  void _requestPermissions() async {
+    await Permission.notification.request();
   }
 
   void _loadSettings() async {
@@ -65,7 +74,7 @@ class _HomePageState extends State<HomePage> {
     final tunnelService = Provider.of<TunnelService>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Mobile Reverse Proxy")),
+      appBar: AppBar(title: const Text("SkyHub Backup Support")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

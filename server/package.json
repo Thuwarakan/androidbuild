@@ -1,0 +1,14 @@
+{
+  "name": "proxy-server",
+  "version": "1.0.0",
+  "description": "Node.js SOCKS5 to Android Tunnel Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.0.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
