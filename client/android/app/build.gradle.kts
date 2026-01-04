@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.mobile_proxy_client"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "26.1.10909125"
+    ndkVersion = "27.3.13750724"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
