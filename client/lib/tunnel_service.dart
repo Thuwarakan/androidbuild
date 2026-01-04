@@ -11,6 +11,10 @@ class TunnelService with ChangeNotifier {
   bool _isConnected = false;
   String _logs = "";
   final List<String> _activeTunnels = [];
+  bool _isManualDisconnect = false;
+  String? _savedIp;
+  String? _savedPort;
+  Timer? _reconnectTimer;
 
   bool get isConnected => _isConnected;
   String get logs => _logs;
@@ -26,6 +30,11 @@ class TunnelService with ChangeNotifier {
 
   Future<void> connect(String serverIp, String port) async {
     if (_isConnected) return;
+
+    _savedIp = serverIp;
+    _savedPort = port;
+    _isManualDisconnect = false;
+    _reconnectTimer?.cancel();
 
     final wsUrl = Uri.parse('ws://$serverIp:$port');
     log("Connecting to $wsUrl...");
@@ -43,24 +52,43 @@ class TunnelService with ChangeNotifier {
         },
         onDone: () {
           log("Disconnected from server.");
-          disconnect();
+          disconnect(manual: false);
         },
         onError: (error) {
           log("WS Error: $error");
-          disconnect();
+          disconnect(manual: false);
         },
       );
     } catch (e) {
       log("Connection failed: $e");
-      disconnect();
+      disconnect(manual: false);
     }
   }
 
-  void disconnect() {
+  void disconnect({bool manual = true}) {
     _isConnected = false;
     _channel?.sink.close(status.goingAway);
     _channel = null;
     notifyListeners();
+
+    if (manual) {
+      _isManualDisconnect = true;
+      _reconnectTimer?.cancel();
+      log("Disconnected manually.");
+    } else {
+      _attemptReconnect();
+    }
+  }
+
+  void _attemptReconnect() {
+    if (_isManualDisconnect) return;
+
+    log("Reconnecting in 5 seconds...");
+    _reconnectTimer = Timer(const Duration(seconds: 5), () {
+      if (!_isConnected && _savedIp != null && _savedPort != null) {
+        connect(_savedIp!, _savedPort!);
+      }
+    });
   }
 
   void _handleMessage(dynamic message, String serverIp) async {
