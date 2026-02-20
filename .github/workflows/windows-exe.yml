@@ -1,0 +1,39 @@
+name: Windows EXE Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Windows Release EXE
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+        working-directory: client
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+        working-directory: client
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: client/build/windows/runner/Release/

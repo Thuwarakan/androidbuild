@@ -1,12 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
-import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'tunnel_logic.dart';
 
 Future<void> initializeService() async {
+  if (!(Platform.isAndroid || Platform.isIOS)) return;
   final service = FlutterBackgroundService();
 
   // Android Notification Channel
@@ -75,7 +75,6 @@ void onStart(ServiceInstance service) async {
   final tunnelLogic = TunnelLogic();
 
   tunnelLogic.onLog = (String log) {
-    print("BG LOG: $log");
     service.invoke('log', {'message': log});
   };
 

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,7 +55,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _requestPermissions() async {
-    await Permission.notification.request();
+    if (Platform.isAndroid || Platform.isIOS) {
+      await Permission.notification.request();
+    }
   }
 
   void _loadSettings() async {
@@ -122,9 +125,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     if (tunnelService.isConnected)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: const Text(
+                      const Padding(
+                        padding: EdgeInsets.only(top: 10),
+                        child: Text(
                           "Status: Connected via WebSocket",
                           style: TextStyle(color: Colors.green),
                         ),

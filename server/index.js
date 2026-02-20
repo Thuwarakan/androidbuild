@@ -233,7 +233,7 @@ function getBestDevice() {
     return best;
 }
 
-proxyServer.listen(CONFIG.SOCKS_PORT, () => {
-    console.log(`[PROXY] Server listening on port ${CONFIG.SOCKS_PORT}`);
+proxyServer.listen(CONFIG.SOCKS_PORT, '127.0.0.1', () => {
+    console.log(`[PROXY] Server listening on localhost:${CONFIG.SOCKS_PORT} (internal only)`);
     console.log(`[INFO] Control Port: ${CONFIG.WS_PORT}, Data Port: ${CONFIG.DATA_PORT}`);
 });

@@ -1,18 +1,38 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'tunnel_logic.dart';
 
 class TunnelService with ChangeNotifier {
   bool _isConnected = false;
   String _logs = "";
   List<String> _activeTunnels = [];
+  TunnelLogic? _tunnelLogic; // New for Desktop support
 
   bool get isConnected => _isConnected;
   String get logs => _logs;
   List<String> get activeTunnels => _activeTunnels;
 
   TunnelService() {
-    _initServiceListener();
+    if (Platform.isAndroid || Platform.isIOS) {
+      _initServiceListener();
+    } else {
+      _initDesktopLogic();
+    }
+  }
+
+  void _initDesktopLogic() {
+    _tunnelLogic = TunnelLogic();
+    _tunnelLogic!.onLog = (msg) => _log(msg);
+    _tunnelLogic!.onStatusChange = (status) {
+      _isConnected = status;
+      notifyListeners();
+    };
+    _tunnelLogic!.onTunnelsChange = (tunnels) {
+      _activeTunnels = List<String>.from(tunnels);
+      notifyListeners();
+    };
   }
 
   void _initServiceListener() async {
@@ -39,7 +59,6 @@ class TunnelService with ChangeNotifier {
 
     service.on('tunnels').listen((event) {
       if (event != null && event['tunnels'] != null) {
-        // dynamic list to string list
         _activeTunnels = List<String>.from(event['tunnels']);
         notifyListeners();
       }
@@ -55,21 +74,26 @@ class TunnelService with ChangeNotifier {
   }
 
   Future<void> connect(String serverIp, String port) async {
-    final service = FlutterBackgroundService();
-
-    // Ensure service is started
-    if (!await service.isRunning()) {
-      await service.startService();
+    if (Platform.isAndroid || Platform.isIOS) {
+      final service = FlutterBackgroundService();
+      if (!await service.isRunning()) {
+        await service.startService();
+      }
+      service.invoke('connect', {
+        'ip': serverIp,
+        'port': port,
+      });
+    } else {
+      _tunnelLogic?.connect(serverIp, port);
     }
-
-    service.invoke('connect', {
-      'ip': serverIp,
-      'port': port,
-    });
   }
 
   void disconnect() {
-    final service = FlutterBackgroundService();
-    service.invoke('disconnect');
+    if (Platform.isAndroid || Platform.isIOS) {
+      final service = FlutterBackgroundService();
+      service.invoke('disconnect');
+    } else {
+      _tunnelLogic?.disconnect();
+    }
   }
 }
